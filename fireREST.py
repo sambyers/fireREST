@@ -20,7 +20,7 @@ HEADERS = {
 
 
 class FireREST(object):
-    def __init__(self, device=None, username=None, password=None, verify_cert=False, timeout=120, loglevel=20, rate_limit=115):
+    def __init__(self, device=None, username=None, password=None, verify_cert=False, timeout=120, loglevel=20, rate_limit=9):
 
         self.logger = logging.getLogger('FireREST')
         self.logger.setLevel(loglevel)
@@ -45,9 +45,6 @@ class FireREST(object):
             'snmpalert': 'snmpalerts',
             'syslogalert': 'syslogalerts'
         }
-
-        # This rate limit is set to 110 requests per minute, the FMC API allows 120.
-        # Might want to make them cls attrs, in case multiple instances are made
         self.rate_limit = rate_limit
         self.rate_limit_count = 0
 
@@ -89,6 +86,7 @@ class FireREST(object):
                 url_with_offset = url + '&offset=' + str(int(i) * int(limit))
                 response_page = requests.get(url_with_offset, headers=self.headers, verify=self.verify_cert,
                                              timeout=self.timeout)
+                self._rate_limit()
                 responses.append(response_page)
         return responses
 
@@ -121,7 +119,7 @@ class FireREST(object):
         Added so the methods could be rate limited as the FMC API is limited to 120 calls a minute.
         '''
         if self.rate_limit_count > self.rate_limit:
-            sleep(60)
+            sleep(5)
             self.rate_limit_count = 0
         else:
             self.rate_limit_count += 1
