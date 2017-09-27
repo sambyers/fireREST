@@ -3,6 +3,7 @@ import requests
 import sys
 import logging
 from rainbow_logging_handler import RainbowLoggingHandler
+from time import sleep
 
 from requests.auth import HTTPBasicAuth
 
